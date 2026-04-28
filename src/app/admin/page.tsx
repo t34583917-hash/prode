@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Settings, CheckCircle, Clock } from 'lucide-react';
 
 // ACÁ PONÉ TU EMAIL PARA QUE SOLO VOS SEAS EL ADMIN
-const ADMIN_EMAIL = 't34583917-hash@ejemplo.com'; // Cambialo por el tuyo
+const ADMIN_EMAIL = 'felicardona1713@gmail.com'; // Cambialo por el tuyo
 
 export default function AdminPanel() {
   const [partidos, setPartidos] = useState<any[]>([]);
