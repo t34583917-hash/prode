@@ -1,14 +1,15 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Medal, Trophy } from 'lucide-react';
 
-export default function Ranking() {
+function RankingContent() {
   const searchParams = useSearchParams();
   const ligaId = searchParams.get('liga');
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [nombreLiga, setNombreLiga] = useState('Global');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRanking = async () => {
@@ -17,11 +18,9 @@ export default function Ranking() {
         .select('nombre, puntos_totales');
 
       if (ligaId) {
-        // Obtener nombre de la liga
         const { data: liga } = await supabase.from('ligas').select('nombre').eq('id', ligaId).single();
         if (liga) setNombreLiga(liga.nombre);
 
-        // Filtrar por miembros de la liga
         const { data: miembros } = await supabase.from('liga_miembros').select('perfil_id').eq('liga_id', ligaId);
         const ids = miembros?.map(m => m.perfil_id) || [];
         query = query.in('id', ids);
@@ -29,9 +28,12 @@ export default function Ranking() {
 
       const { data } = await query.order('puntos_totales', { ascending: false });
       setUsuarios(data || []);
+      setLoading(false);
     };
     fetchRanking();
   }, [ligaId]);
+
+  if (loading) return <div className="text-center p-20">Cargando Ranking...</div>;
 
   return (
     <div className="max-w-2xl mx-auto p-4 py-10">
@@ -63,7 +65,7 @@ export default function Ranking() {
                      {i + 1}
                    </span>
                 </td>
-                <td className="p-6 font-bold text-gray-800 text-lg">{u.nombre.split('@')[0]}</td>
+                <td className="p-6 font-bold text-gray-800 text-lg">{u.nombre?.split('@')[0]}</td>
                 <td className="p-6 text-right">
                   <span className="text-2xl font-black text-blue-600">{u.puntos_totales}</span>
                 </td>
@@ -79,5 +81,13 @@ export default function Ranking() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Ranking() {
+  return (
+    <Suspense fallback={<div className="text-center p-20">Cargando...</div>}>
+      <RankingContent />
+    </Suspense>
   );
 }
